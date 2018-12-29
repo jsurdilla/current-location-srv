@@ -36,32 +36,46 @@ const camelCase = (event) => {
   return e;
 };
 
+/**
+ * Creates a visit.
+ *
+ * @param {string} userId
+ * @param {string} name name of the location
+ * @returns {Promise} If successful, the promise resolves to a
+ * visit record.
+ */
 const createVisit = async ({ userId, name }) => (
-  new Promise(async (resolve, reject) => {
-    try {
-      const res = await pool.query(INSERT_VISIT_SQL, [userId, name]);
-      resolve(camelCase(res.rows[0]));
-    } catch (err) {
-      reject(err);
-    }
+  new Promise(async (resolve) => {
+    const res = await pool.query(INSERT_VISIT_SQL, [userId, name]);
+    resolve(camelCase(res.rows[0]));
   })
 );
 
+/**
+ * Returns a visit correspondig to the ID, if it exists.
+ *
+ * @param {string} visitId
+ * @returns {Promise} If successful, the promise resolves to a visit
+ * record, if it exists; `null` otherwise.
+ */
 const getById = async visitId => (
-  new Promise(async (resolve, reject) => {
-    try {
-      const res = await pool.query(SELECT_BY_ID, [visitId]);
-      if (res.rowCount === 0) {
-        resolve(null);
-        return;
-      }
-      resolve(camelCase(res.rows[0]));
-    } catch (err) {
-      reject(err);
+  new Promise(async (resolve) => {
+    const res = await pool.query(SELECT_BY_ID, [visitId]);
+    if (res.rowCount === 0) {
+      resolve(null);
+      return;
     }
+    resolve(camelCase(res.rows[0]));
   })
 );
 
+/**
+ * Returns the most recent visits by a user.
+ * @param {String} userId
+ * @param {Hash} options hash of options. Currently only `limit`,
+ * which defaults to 5.
+ * @returns {Array[visit]}
+ */
 const getByUserId = async (userId, { limit } = { limit: 5 }) => (
   new Promise(async (resolve, reject) => {
     try {
