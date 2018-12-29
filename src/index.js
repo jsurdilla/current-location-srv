@@ -1,3 +1,4 @@
+import fuzzy from 'fuzzy';
 import express from 'express';
 import bodyParser from 'body-parser';
 
@@ -20,6 +21,7 @@ app.post('/visit', async (req, res) => {
       .json(visit)
       .end();
   } catch (err) {
+    console.log(err);
     res.status(500);
     res.json({
       code: 500,
@@ -39,6 +41,13 @@ app.get('/visit', async (req, res) => {
       visits = [visit];
     } else if (userId && searchString) {
       visits = await getByUserId(userId);
+
+      const options = {
+        extract(el) { return el.location_name; },
+      };
+      visits = fuzzy
+        .filter(searchString, visits, options)
+        .map(el => el.original);
     } else {
       res.status(400);
       res.json({ code: 400, message: 'visitID or a userId-name combination required' });
@@ -50,6 +59,7 @@ app.get('/visit', async (req, res) => {
     res.json(visits);
     res.end();
   } catch (err) {
+    console.log(err);
     res.status(500);
     res.json({
       code: 500,
